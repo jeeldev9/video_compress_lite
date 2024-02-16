@@ -1,4 +1,4 @@
-package com.example.video_compress_lite
+package com.example.video_compress
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -24,7 +24,7 @@ class ThumbnailUtility(channelName: String) {
                              result: MethodChannel.Result) {
         val bmp = utility.getBitmap(path, position, result)
 
-        val dir = context.getExternalFilesDir("video_compress_lite")
+        val dir = context.getExternalFilesDir("video_compress")
 
         if (dir != null && !dir.exists()) dir.mkdirs()
 

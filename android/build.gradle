@@ -1,4 +1,4 @@
-group 'com.example.video_compress_lite'
+group 'com.example.video_compress'
 version '1.0-SNAPSHOT'
 
 buildscript {
