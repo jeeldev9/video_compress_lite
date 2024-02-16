@@ -1,10 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+
 import 'subscription.dart';
 
 class CompressMixin {
   final compressProgress$ = ObservableBuilder<double>();
-  final _channel = const MethodChannel('video_compress');
+  final _channel = const MethodChannel('video_compress_lite');
 
   @protected
   void initProcessCallback() {

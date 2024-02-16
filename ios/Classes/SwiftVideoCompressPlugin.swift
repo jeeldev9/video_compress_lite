@@ -2,7 +2,7 @@ import Flutter
 import AVFoundation
 
 public class SwiftVideoCompressPlugin: NSObject, FlutterPlugin {
-    private let channelName = "video_compress"
+    private let channelName = "video_compress_lite"
     private var exporter: AVAssetExportSession? = nil
     private var stopCommand = false
     private let channel: FlutterMethodChannel
@@ -13,7 +13,7 @@ public class SwiftVideoCompressPlugin: NSObject, FlutterPlugin {
     }
     
     public static func register(with registrar: FlutterPluginRegistrar) {
-        let channel = FlutterMethodChannel(name: "video_compress", binaryMessenger: registrar.messenger())
+        let channel = FlutterMethodChannel(name: "video_compress_lite", binaryMessenger: registrar.messenger())
         let instance = SwiftVideoCompressPlugin(channel: channel)
         registrar.addMethodCallDelegate(instance, channel: channel)
     }

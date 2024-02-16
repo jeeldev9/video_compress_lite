@@ -128,7 +128,7 @@ class Utility(private val channelName: String) {
     }
 
     fun deleteAllCache(context: Context, result: MethodChannel.Result) {
-        val dir = context.getExternalFilesDir("video_compress")
+        val dir = context.getExternalFilesDir("video_compress_lite")
         result.success(dir?.deleteRecursively())
     }
 }
