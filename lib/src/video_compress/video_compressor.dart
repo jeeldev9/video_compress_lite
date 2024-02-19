@@ -51,8 +51,7 @@ extension Compress on IVideoCompress {
   /// getByteThumbnail return [Future<Uint8List>],
   /// quality can be controlled by [quality] from 1 to 100,
   /// select the position unit in the video by [position] is milliseconds
-  Future<Uint8List?> getByteThumbnail(
-    String path, {
+  Future<Uint8List?> getByteThumbnail(String path, {
     int quality = 100,
     int position = -1,
   }) async {
@@ -68,8 +67,7 @@ extension Compress on IVideoCompress {
   /// getFileThumbnail return [Future<File>]
   /// quality can be controlled by [quality] from 1 to 100,
   /// select the position unit in the video by [position] is milliseconds
-  Future<File> getFileThumbnail(
-    String path, {
+  Future<File> getFileThumbnail(String path, {
     int quality = 100,
     int position = -1,
   }) async {
@@ -109,8 +107,16 @@ extension Compress on IVideoCompress {
   /// compress video from [path] return [Future<MediaInfo>]
   ///
   /// you can choose its quality by [quality],
+  ///
+  /// Note : VideoQuality.CustomQuality is available only in Android platform.
+  ///
   /// determine whether to delete his source file by [deleteOrigin]
-  /// optional parameters [startTime] [duration] [includeAudio] [frameRate]
+  ///
+  /// optional parameters : [startTime] , [duration] , [includeAudio] , [frameRate]
+  ///
+  /// Android specific parameters : [bitRate] , [outputWidth] , [outputHeight]
+  ///
+  /// Note : if you don't choose VideoQuality.CustomQuality , [outputWidth] and [outputHeight] will be ignored.
   ///
   /// ## example
   /// ```dart
@@ -120,14 +126,16 @@ extension Compress on IVideoCompress {
   /// );
   /// debugPrint(info.toJson());
   /// ```
-  Future<MediaInfo?> compressVideo(
-    String path, {
+  Future<MediaInfo?> compressVideo(String path, {
     VideoQuality quality = VideoQuality.DefaultQuality,
     bool deleteOrigin = false,
     int? startTime,
     int? duration,
     bool? includeAudio,
     int frameRate = 30,
+    int? bitRate,
+    int? outputWidth,
+    int? outputHeight,
   }) async {
     if (isCompressing) {
       throw StateError('''VideoCompress Error: 
@@ -150,6 +158,9 @@ extension Compress on IVideoCompress {
       'duration': duration,
       'includeAudio': includeAudio,
       'frameRate': frameRate,
+      'bitRate': bitRate,
+      'outputWidth': outputWidth,
+      'outputHeight': outputHeight,
     });
 
     // ignore: invalid_use_of_protected_member
