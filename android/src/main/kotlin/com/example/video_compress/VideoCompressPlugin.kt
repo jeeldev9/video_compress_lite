@@ -192,6 +192,7 @@ class VideoCompressPlugin : MethodCallHandler, FlutterPlugin {
                                 Log.e("fail", "Try Exception ::: ${e.message}")
 
                             }
+
                             val json = Utility("video_compress").getMediaInfoJson(
                                 context = context,
                                 path = file,
