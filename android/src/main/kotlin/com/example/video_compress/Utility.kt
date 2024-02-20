@@ -8,7 +8,9 @@ import android.os.Build
 import io.flutter.plugin.common.MethodChannel
 import org.json.JSONObject
 import java.io.File
-
+import android.util.Log
+import android.os.Environment
+import com.abedelazizshe.lightcompressorlibrary.VideoQuality
 class Utility(private val channelName: String) {
 
     fun isLandscapeImage(orientation: Int) = orientation != 90 && orientation != 270
@@ -31,12 +33,23 @@ class Utility(private val channelName: String) {
         return timeStamp.toLong()
     }
 
-    fun getMediaInfoJson(context: Context, path: String): JSONObject {
-        val file = File(path)
-        val retriever = MediaMetadataRetriever()
-
-        retriever.setDataSource(context, Uri.fromFile(file))
-
+    fun getMediaInfoJson(context: Context, path: File,mediaRetriever: MediaMetadataRetriever): JSONObject {
+//        val file = File(path)
+        val file = File(path.path)
+        val retriever =mediaRetriever
+//        try {
+//            retriever.setDataSource(context, Uri.fromFile(file))
+//        }catch (e:Exception){
+//            Log.e("Message", "onSuccess: File Path ::: ${Uri.fromFile(file)}" )
+//            Log.e("Message", "Exception ::: ${e.message}" )
+//        }
+//        try {
+//            retriever.setDataSource(context!!, Uri.parse(file.path))
+//        } catch (e: Exception) {
+//            e.printStackTrace()
+//            Log.e("fail", "Try Exception ::: ${e.message}")
+//
+//        }
         val durationStr = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
         val title = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE) ?: ""
         val author = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_AUTHOR) ?: ""
@@ -57,12 +70,9 @@ class Utility(private val channelName: String) {
             width = height
             height = tmp
         }
-
         retriever.release()
-
         val json = JSONObject()
-
-        json.put("path", path)
+        json.put("path", Uri.parse(file.absolutePath))
         json.put("title", title)
         json.put("author", author)
         json.put("width", width)
@@ -72,7 +82,6 @@ class Utility(private val channelName: String) {
         if (ori != null) {
             json.put("orientation", ori)
         }
-
         return json
     }
 
@@ -128,7 +137,25 @@ class Utility(private val channelName: String) {
     }
 
     fun deleteAllCache(context: Context, result: MethodChannel.Result) {
-        val dir = context.getExternalFilesDir("video_compress")
+//        val dir = context.getExternalFilesDir("video_compress")
+        val dir =  File(
+            Environment.getExternalStorageDirectory()
+                .toString() + "/" + Environment.DIRECTORY_MOVIES + "/video_compress"
+        )
         result.success(dir?.deleteRecursively())
     }
+
+    /// Get VideoQuallit Value
+    fun getQuality(index: Int): VideoQuality {
+        var videoQuality: VideoQuality = VideoQuality.MEDIUM
+        when (index) {
+            0 -> videoQuality = VideoQuality.VERY_LOW
+            1 -> videoQuality = VideoQuality.LOW
+            2 -> videoQuality = VideoQuality.MEDIUM
+            3 -> videoQuality = VideoQuality.HIGH
+            4 -> videoQuality = VideoQuality.VERY_HIGH
+        }
+        return videoQuality
+    }
+
 }

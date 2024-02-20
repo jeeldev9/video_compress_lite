@@ -127,7 +127,7 @@ extension Compress on IVideoCompress {
   /// debugPrint(info.toJson());
   /// ```
   Future<MediaInfo?> compressVideo(String path, {
-    VideoQuality quality = VideoQuality.DefaultQuality,
+    VideoQuality quality = VideoQuality.MEDIUM,
     bool deleteOrigin = false,
     int? startTime,
     int? duration,
