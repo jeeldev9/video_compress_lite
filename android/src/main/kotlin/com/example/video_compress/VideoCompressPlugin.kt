@@ -21,6 +21,10 @@ import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.PluginRegistry.Registrar
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.io.IOException
+import java.nio.file.StandardCopyOption
 import java.text.SimpleDateFormat
 import java.util.*
 import org.json.JSONObject
@@ -136,9 +140,7 @@ class VideoCompressPlugin : MethodCallHandler, FlutterPlugin {
                 Log.e("fail", "Height ::: ${height}")
                 Log.e("fail", "Width ::: ${width}")
 
-//                val tempDir: String = context.getExternalFilesDir("video_compress")!!.absolutePath
-//                val out = SimpleDateFormat("yyyy-MM-dd hh-mm-ss").format(Date())
-//                val destPath: String = tempDir + File.separator + "VID_" + out + path.hashCode() + ".mp4"
+//
                 val sourceUri: MutableList<Uri> = ArrayList()
                 sourceUri.add(Uri.fromFile(file))
                 val videoName: MutableList<String> = ArrayList()
@@ -171,9 +173,34 @@ class VideoCompressPlugin : MethodCallHandler, FlutterPlugin {
 
                         override fun onSuccess(i: Int, l: Long, s: String?) {
                             Log.e("is dir", "ON SUCCESSS:::" + s.toString())
+//                            val videoFile = File(s)
 
-                            val videoFile = File(s)
-                            val file = File(videoFile.getAbsolutePath())
+                            val tempDir: String = context.getExternalFilesDir("video_compress")!!.absolutePath
+                            val out = SimpleDateFormat("yyyy-MM-dd hh-mm-ss").format(Date())
+                            val destPath: String =
+                                tempDir + File.separator + "VID_" + out + file.hashCode() + ".mp4"
+
+                            val sourceFile = File(s)
+                            val destinationFile = File(destPath)
+
+                            try {
+                                // Move the file to the destination path
+//                                Files.move(sourceFile.toPath(), destinationFile.toPath(),StandardCopyOption.REPLACE_EXISTING)
+                                sourceFile.copyTo(destinationFile)
+                                // If the move operation was successful, delete the original file
+                                if (destinationFile.exists()) {
+                                    sourceFile.delete()
+                                    println("File moved successfully and original file deleted.")
+                                } else {
+                                    println("Failed to move the file.")
+                                }
+                            } catch (e: Exception) {
+                                println("An error occurred: ${e.message}")
+                            }
+
+
+
+                            val file = destinationFile
                             val file_size = (file.length() / 1024).toString().toInt()
                             Log.e(TAG, "onSuccess: Compressed File ::: ${file.path}")
                             Log.e("LL", "SIZE::" + file_size + "  PATH::" + file.absolutePath)
