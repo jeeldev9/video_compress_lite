@@ -44,14 +44,25 @@ import android.os.Environment
 import java.io.FileInputStream
 import java.io.FileOutputStream
 
+import android.content.pm.PackageManager.PERMISSION_GRANTED
+import android.Manifest.permission.*
+import androidx.core.app.ActivityCompat
+import io.flutter.embedding.engine.plugins.activity.ActivityAware
+import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
+import android.app.Activity
+import androidx.annotation.NonNull
+import io.flutter.plugin.common.MethodChannel.Result
+
 /**
  * VideoCompressPlugin
  */
-class VideoCompressPlugin : MethodCallHandler, FlutterPlugin {
-
+class VideoCompressPlugin : MethodCallHandler, FlutterPlugin, ActivityAware {
+    val STORAGE_REQUEST_CODE = 100
 
     private var _context: Context? = null
     private var _channel: MethodChannel? = null
+    private var activity: Activity? = null
+
     private val TAG = "VideoCompressPlugin"
 
     //    private val LOG = Logger(TAG)
@@ -60,7 +71,7 @@ class VideoCompressPlugin : MethodCallHandler, FlutterPlugin {
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         val context = _context;
-        val channel = _channel;
+        var channel = _channel;
 
         if (context == null || channel == null) {
             Log.w(TAG, "Calling VideoCompress plugin before initialization")
@@ -120,6 +131,8 @@ class VideoCompressPlugin : MethodCallHandler, FlutterPlugin {
             "compressVideo" -> {
                 ///Sub Folder Create
 
+                val isPermission=getGalleryPermission()
+                if(!isPermission) return
                 val storageFile = File(
                     Environment.getExternalStorageDirectory()
                         .toString() + "/" + Environment.DIRECTORY_MOVIES + "/video_compress"
@@ -138,7 +151,7 @@ class VideoCompressPlugin : MethodCallHandler, FlutterPlugin {
                     metaRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)
                 val width =
                     metaRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)
-                Log.e("fail", "Height ::: ${height}")
+                Log.e("fail", "Height ::: ${height}") 
                 Log.e("fail", "Width ::: ${width}")
 
 //
@@ -413,9 +426,59 @@ class VideoCompressPlugin : MethodCallHandler, FlutterPlugin {
         }
     }
 
-    override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
-        init(binding.applicationContext, binding.binaryMessenger)
+
+    fun getGalleryPermission(): Boolean { // show permission dialog and custom Dialog if permission is not granted
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) { // android 14 permission
+            if (activity!!.checkSelfPermission(READ_MEDIA_VISUAL_USER_SELECTED)== PERMISSION_GRANTED ||
+                activity!!.checkSelfPermission(READ_MEDIA_IMAGES) == PERMISSION_GRANTED &&
+                activity!!.checkSelfPermission(READ_MEDIA_VIDEO) == PERMISSION_GRANTED
+            )
+                return true
+            else {
+
+                ActivityCompat.requestPermissions(
+                    activity!!,
+                    arrayOf(READ_MEDIA_IMAGES,READ_MEDIA_VIDEO, READ_MEDIA_VISUAL_USER_SELECTED),
+                    STORAGE_REQUEST_CODE
+                )
+
+                return false
+            }
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { // andorid 13 permission
+            if (activity!!.checkSelfPermission(READ_MEDIA_IMAGES) == PERMISSION_GRANTED &&
+                activity!!.checkSelfPermission(READ_MEDIA_VIDEO) == PERMISSION_GRANTED
+            )
+                return true
+            else {
+
+                ActivityCompat.requestPermissions(
+                    activity!!,
+                    arrayOf(READ_MEDIA_IMAGES,READ_MEDIA_VIDEO),
+                    STORAGE_REQUEST_CODE
+                )
+
+                return false
+            }
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) { // andorid 12 or lower version permission
+            if (activity!!.checkSelfPermission(WRITE_EXTERNAL_STORAGE) == PERMISSION_GRANTED ||
+                activity!!.checkSelfPermission(READ_EXTERNAL_STORAGE) == PERMISSION_GRANTED
+            )
+                return true
+            else {
+
+                ActivityCompat.requestPermissions(
+                    activity!!,
+                    arrayOf(WRITE_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE),
+                    STORAGE_REQUEST_CODE
+                )
+                Log.e("TAG", "requestPermission: send permission request")
+                return false
+            }
+        } else {
+            return true
+        }
     }
+
 
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         _channel?.setMethodCallHandler(null)
@@ -423,13 +486,37 @@ class VideoCompressPlugin : MethodCallHandler, FlutterPlugin {
         _channel = null
     }
 
+    override fun onAttachedToActivity(binding: ActivityPluginBinding) {
+        activity = binding.activity
+    }
+
+    override fun onDetachedFromActivityForConfigChanges() {
+        activity = null
+    }
+
+    override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
+        activity = binding.activity
+    }
+
+
+    override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
+        init(flutterPluginBinding.applicationContext, flutterPluginBinding.binaryMessenger)
+//        _channel = MethodChannel(flutterPluginBinding.binaryMessenger, "video_compress")
+//        _channel.setMethodCallHandler(this)
+
+//        init(binding.applicationContext, binding.binaryMessenger)
+    }
+
+
     private fun init(context: Context, messenger: BinaryMessenger) {
         val channel = MethodChannel(messenger, channelName)
         channel.setMethodCallHandler(this)
         _context = context
         _channel = channel
     }
-
+    override fun onDetachedFromActivity() {
+        activity = null
+    }
     companion object {
         private const val TAG = "video_compress"
 
@@ -439,5 +526,7 @@ class VideoCompressPlugin : MethodCallHandler, FlutterPlugin {
             instance.init(registrar.context(), registrar.messenger())
         }
     }
+
+
 }
                  
