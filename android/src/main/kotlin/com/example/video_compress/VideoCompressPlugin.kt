@@ -41,7 +41,8 @@ import android.os.Looper
 import android.graphics.Bitmap
 import android.os.Build
 import android.os.Environment
-
+import java.io.FileInputStream
+import java.io.FileOutputStream
 
 /**
  * VideoCompressPlugin
@@ -180,25 +181,41 @@ class VideoCompressPlugin : MethodCallHandler, FlutterPlugin {
                             val destPath: String =
                                 tempDir + File.separator + "VID_" + out + file.hashCode() + ".mp4"
 
+                            Log.e(TAG, "moveVideoFile: source path ::: $s", )
                             val sourceFile = File(s)
                             val destinationFile = File(destPath)
 
                             try {
-                                // Move the file to the destination path
-//                                Files.move(sourceFile.toPath(), destinationFile.toPath(),StandardCopyOption.REPLACE_EXISTING)
-                                sourceFile.copyTo(destinationFile)
-                                // If the move operation was successful, delete the original file
-                                if (destinationFile.exists()) {
-                                    sourceFile.delete()
-                                    println("File moved successfully and original file deleted.")
-                                } else {
-                                    println("Failed to move the file.")
+                                // Check if destination directory exists, create it if not
+                                val destinationDir = destinationFile.parentFile
+                                if (!destinationDir.exists()) {
+                                    destinationDir.mkdirs()
                                 }
+
+                                // Create input and output streams
+                                val inputStream = FileInputStream(sourceFile)
+                                val outputStream = FileOutputStream(destinationFile)
+
+                                // Buffer for copying data
+                                val buffer = ByteArray(1024)
+
+                                var bytesRead: Int
+                                while (inputStream.read(buffer).also { bytesRead = it } != -1) {
+                                    outputStream.write(buffer, 0, bytesRead)
+                                }
+
+                                // Close streams and delete source file (optional)
+                                inputStream.close()
+                                outputStream.close()
+                                sourceFile.delete() // Be cautious with deletion
+
+                                Log.e(TAG, "moveVideoFile: destPath ::: ${destinationFile.path}", )
+                                // Handle success message or logic
+                                Log.d("TAG", "Video file moved successfully!")
                             } catch (e: Exception) {
-                                println("An error occurred: ${e.message}")
+                                // Handle error message or logic
+                                Log.e("TAG", "Error moving video file: ${e.message}")
                             }
-
-
 
                             val file = destinationFile
                             val file_size = (file.length() / 1024).toString().toInt()
