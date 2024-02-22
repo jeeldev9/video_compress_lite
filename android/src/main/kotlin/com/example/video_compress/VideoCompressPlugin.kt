@@ -44,6 +44,7 @@ import android.os.Environment
 import java.io.FileInputStream
 import java.io.FileOutputStream
 
+import android.content.pm.PackageManager
 import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.Manifest.permission.*
 import androidx.core.app.ActivityCompat
@@ -52,7 +53,6 @@ import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import android.app.Activity
 import androidx.annotation.NonNull
 import io.flutter.plugin.common.MethodChannel.Result
-
 /**
  * VideoCompressPlugin
  */
@@ -131,10 +131,6 @@ class VideoCompressPlugin : MethodCallHandler, FlutterPlugin, ActivityAware {
 
             "compressVideo" -> {
                 ///Sub Folder Create
-
-                val isPermission=getGalleryPermission()
-                Log.e("Storage Permission", "isPermission ::: ${isPermission}")
-                if(isPermission==false) return
                 val storageFile = File(
                     Environment.getExternalStorageDirectory()
                         .toString() + "/" + Environment.DIRECTORY_MOVIES + "/video_compress"
@@ -153,7 +149,7 @@ class VideoCompressPlugin : MethodCallHandler, FlutterPlugin, ActivityAware {
                     metaRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)
                 val width =
                     metaRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)
-                Log.e("fail", "Height ::: ${height}") 
+                Log.e("fail", "Height ::: ${height}")
                 Log.e("fail", "Width ::: ${width}")
 
 //
@@ -257,40 +253,7 @@ class VideoCompressPlugin : MethodCallHandler, FlutterPlugin, ActivityAware {
                                 path = file,
                                 mediaRetriever = metaRetriever,
                             )
-//                                val durationStr = metaRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
-//                                val title = metaRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE) ?: ""
-//                                val author = metaRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_AUTHOR) ?: ""
-//                                val widthStr = metaRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)
-//                                val heightStr = metaRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)
-//                                val duration = java.lang.Long.parseLong(durationStr)
-//                                var width = java.lang.Long.parseLong(widthStr)
-//                                var height = java.lang.Long.parseLong(heightStr)
-//                                val filesize = file.length()
-////                                val orientation = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-////                                    retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)
-////                                } else {
-////                                    null
-////                                }
-////                                val ori = orientation?.toIntOrNull()
-////                                if (ori != null && isLandscapeImage(ori)) {
-////                                    val tmp = width
-////                                    width = height
-////                                    height = tmp
-////                                }
-//                            metaRetriever.release()
-//                                val json = JSONObject()
-//                                json.put("path", Uri.parse(file.absolutePath))
-//                                json.put("title", title)
-//                                json.put("author", author)
-//                                json.put("width", width)
-//                                json.put("height", height)
-//                                json.put("duration", duration)
-//                                json.put("filesize", filesize)
-////                                if (ori != null) {
-////                                    json.put("orientation", ori)
-////                                }
-//
-
+//                              
                             Log.e("fail", "json value ::: ${json.toString()}")
                             json.put("isCancel", false)
                             result.success(json.toString())
@@ -321,164 +284,9 @@ class VideoCompressPlugin : MethodCallHandler, FlutterPlugin, ActivityAware {
 
             }
 
-//            "compressVideo" -> {
-//                val path = call.argument<String>("path")!!
-//                val quality = call.argument<Int>("quality")!!
-//                val deleteOrigin = call.argument<Boolean>("deleteOrigin")!!
-//                val startTime = call.argument<Int>("startTime")
-//                val duration = call.argument<Int>("duration") q
-//                val includeAudio = call.argument<Boolean>("includeAudio") ?: true
-//                val frameRate = if (call.argument<Int>("frameRate")==null) 30 else call.argument<Int>("frameRate")
-//
-//                val tempDir: String = context.getExternalFilesDir("video_compress")!!.absolutePath
-//                val out = SimpleDateFormat("yyyy-MM-dd hh-mm-ss").format(Date())
-//                val destPath: String = tempDir + File.separator + "VID_" + out + path.hashCode() + ".mp4"
-//
-//                var videoTrackStrategy: TrackStrategy = DefaultVideoStrategy.atMost(340).build();
-//                val audioTrackStrategy: TrackStrategy = DefaultAudioStrategy.builder().build()
-//
-//                when (quality) {
-//
-//                    0 -> {
-//                        videoTrackStrategy = DefaultVideoStrategy.atMost(720).build()
-//                    }
-//
-//                    1 -> {
-//                        videoTrackStrategy = DefaultVideoStrategy.atMost(360).build()
-//                    }
-//                    2 -> {
-//                        videoTrackStrategy = DefaultVideoStrategy.atMost(640).build()
-//                    }
-//                    3 -> {
-//
-//                        assert(value = frameRate != null)
-//                        videoTrackStrategy = DefaultVideoStrategy.Builder()
-//                            .keyFrameInterval(3f)
-//                            .bitRate(1280 * 720 * 4.toLong())
-//                            .frameRate(frameRate!!) // will be capped to the input frameRate
-//                            .build()
-//                    }
-//                    4 -> {
-//                        videoTrackStrategy = DefaultVideoStrategy.atMost(480, 640).build()
-//                    }
-//                    5 -> {
-//                        videoTrackStrategy = DefaultVideoStrategy.atMost(540, 960).build()
-//                    }
-//                    6 -> {
-//                        videoTrackStrategy = DefaultVideoStrategy.atMost(720, 1280).build()
-//                    }
-//                    7 -> {
-//                        videoTrackStrategy = DefaultVideoStrategy.atMost(1080, 1920).build()
-//                    }
-//                }
-//
-//                audioTrackStrategy = if (includeAudio) {
-//                    val sampleRate = DefaultAudioStrategy.SAMPLE_RATE_AS_INPUT
-//                    val channels = DefaultAudioStrategy.CHANNELS_AS_INPUT
-//
-//                    DefaultAudioStrategy.builder()
-//                        .channels(channels)
-//                        .sampleRate(sampleRate)
-//                        .build()
-//
-//                } else {
-//                    RemoveTrackStrategy()
-//                }
-//
-//                val dataSource = if (startTime != null || duration != null){
-//                    val source = UriDataSource(context, Uri.parse(path))
-//                    TrimDataSource(source, (1000 * 1000 * (startTime ?: 0)).toLong(), (1000 * 1000 * (duration ?: 0)).toLong())
-//                }else{
-//                    UriDataSource(context, Uri.parse(path))
-//                }
-//
-//                Log.e("TranscodeFailed","Path is  :::: ${destPath}")
-//                transcodeFuture = Transcoder.into(destPath!!)
-//                    .addDataSource(dataSource)
-//                    .setAudioTrackStrategy(audioTrackStrategy)
-//                    .setVideoTrackStrategy(videoTrackStrategy)
-//                    .setListener(object : TranscoderListener {
-//                        override fun onTranscodeProgress(progress: Double) {
-//                            channel.invokeMethod("updateProgress", progress * 100.0)
-//                        }
-//                        override fun onTranscodeCompleted(successCode: Int) {
-//                            channel.invokeMethod("updateProgress", 100.00)
-//                            val json = Utility(channelName).getMediaInfoJson(context!!, destPath)
-//                            json.put("isCancel", false)
-//                            result.success(json.toString())
-//                            if (deleteOrigin) {
-//                                File(path!!).delete()
-//                            }
-//                        }
-//
-//                        override fun onTranscodeCanceled() {
-//                            result.success(null)
-//                        }
-//
-//                        override fun onTranscodeFailed(exception: Throwable) {
-//                            Log.e("TranscodeFailed","onFailed :::: ${exception.message}")
-//                            result.success(null)
-//                        }
-//                    }).transcode()
-//                Log.e("TranscodeFailed","transcodeFuture  :::: ${transcodeFuture}")
-//            }
-//            else -> {
-//                result.notImplemented()
-//            }
         }
     }
 
-
-    fun getGalleryPermission(): Boolean { // show permission dialog and custom Dialog if permission is not granted
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) { // android 14 permission
-            if (activity!!.checkSelfPermission(READ_MEDIA_VISUAL_USER_SELECTED)== PERMISSION_GRANTED ||
-                activity!!.checkSelfPermission(READ_MEDIA_IMAGES) == PERMISSION_GRANTED &&
-                activity!!.checkSelfPermission(READ_MEDIA_VIDEO) == PERMISSION_GRANTED
-            )
-                return true
-            else {
-                ActivityCompat.requestPermissions(
-                    activity!!,
-                    arrayOf(READ_MEDIA_IMAGES,READ_MEDIA_VIDEO, READ_MEDIA_VISUAL_USER_SELECTED),
-                    STORAGE_REQUEST_VIDEO_CODE
-                )
-
-                return false
-            }
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { // andorid 13 permission
-            if (activity!!.checkSelfPermission(READ_MEDIA_IMAGES) == PERMISSION_GRANTED &&
-                activity!!.checkSelfPermission(READ_MEDIA_VIDEO) == PERMISSION_GRANTED
-            )
-                return true
-            else {
-
-                ActivityCompat.requestPermissions(
-                    activity!!,
-                    arrayOf(READ_MEDIA_IMAGES,READ_MEDIA_VIDEO),
-                    STORAGE_REQUEST_VIDEO_CODE
-                )
-
-                return false
-            }
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) { // andorid 12 or lower version permission
-            if (activity!!.checkSelfPermission(WRITE_EXTERNAL_STORAGE) == PERMISSION_GRANTED ||
-                activity!!.checkSelfPermission(READ_EXTERNAL_STORAGE) == PERMISSION_GRANTED
-            )
-                return true
-            else {
-
-                ActivityCompat.requestPermissions(
-                    activity!!,
-                    arrayOf(WRITE_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE),
-                    STORAGE_REQUEST_CODE
-                )
-                Log.e("TAG", "requestPermission: send permission request")
-                return false
-            }
-        } else {
-            return true
-        }
-    }
 
 
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
@@ -508,17 +316,7 @@ class VideoCompressPlugin : MethodCallHandler, FlutterPlugin, ActivityAware {
 //        init(binding.applicationContext, binding.binaryMessenger)
     }
 
-    fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray): Boolean {
-        return if (requestCode == STORAGE_REQUEST_CODE) {
-            val permissionGranted = grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED ||  grantResults[1] == PackageManager.PERMISSION_GRANTED
-            permissionGranted
-        } else if (requestCode == STORAGE_REQUEST_VIDEO_CODE) {
-            val permissionGranted = grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED &&  grantResults[1] == PackageManager.PERMISSION_GRANTED
-            permissionGranted
-        } else {
-            false
-        }
-    }
+
     private fun init(context: Context, messenger: BinaryMessenger) {
         val channel = MethodChannel(messenger, channelName)
         channel.setMethodCallHandler(this)
@@ -535,7 +333,6 @@ class VideoCompressPlugin : MethodCallHandler, FlutterPlugin, ActivityAware {
         fun registerWith(registrar: Registrar) {
             val instance = VideoCompressPlugin()
             instance.init(registrar.context(), registrar.messenger())
-            registrar.addRequestPermissionsResultListener(plugin::onRequestPermissionsResult)
         }
     }
 
