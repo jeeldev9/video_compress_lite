@@ -58,6 +58,7 @@ import io.flutter.plugin.common.MethodChannel.Result
  */
 class VideoCompressPlugin : MethodCallHandler, FlutterPlugin, ActivityAware {
     val STORAGE_REQUEST_CODE = 100
+    val STORAGE_REQUEST_VIDEO_CODE = 1010
 
     private var _context: Context? = null
     private var _channel: MethodChannel? = null
@@ -132,7 +133,8 @@ class VideoCompressPlugin : MethodCallHandler, FlutterPlugin, ActivityAware {
                 ///Sub Folder Create
 
                 val isPermission=getGalleryPermission()
-                if(!isPermission) return
+                Log.e("Storage Permission", "isPermission ::: ${isPermission}")
+                if(isPermission==false) return
                 val storageFile = File(
                     Environment.getExternalStorageDirectory()
                         .toString() + "/" + Environment.DIRECTORY_MOVIES + "/video_compress"
@@ -435,11 +437,10 @@ class VideoCompressPlugin : MethodCallHandler, FlutterPlugin, ActivityAware {
             )
                 return true
             else {
-
                 ActivityCompat.requestPermissions(
                     activity!!,
                     arrayOf(READ_MEDIA_IMAGES,READ_MEDIA_VIDEO, READ_MEDIA_VISUAL_USER_SELECTED),
-                    STORAGE_REQUEST_CODE
+                    STORAGE_REQUEST_VIDEO_CODE
                 )
 
                 return false
@@ -454,7 +455,7 @@ class VideoCompressPlugin : MethodCallHandler, FlutterPlugin, ActivityAware {
                 ActivityCompat.requestPermissions(
                     activity!!,
                     arrayOf(READ_MEDIA_IMAGES,READ_MEDIA_VIDEO),
-                    STORAGE_REQUEST_CODE
+                    STORAGE_REQUEST_VIDEO_CODE
                 )
 
                 return false
@@ -507,7 +508,17 @@ class VideoCompressPlugin : MethodCallHandler, FlutterPlugin, ActivityAware {
 //        init(binding.applicationContext, binding.binaryMessenger)
     }
 
-
+    fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray): Boolean {
+        return if (requestCode == STORAGE_REQUEST_CODE) {
+            val permissionGranted = grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED ||  grantResults[1] == PackageManager.PERMISSION_GRANTED
+            permissionGranted
+        } else if (requestCode == STORAGE_REQUEST_VIDEO_CODE) {
+            val permissionGranted = grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED &&  grantResults[1] == PackageManager.PERMISSION_GRANTED
+            permissionGranted
+        } else {
+            false
+        }
+    }
     private fun init(context: Context, messenger: BinaryMessenger) {
         val channel = MethodChannel(messenger, channelName)
         channel.setMethodCallHandler(this)
@@ -524,6 +535,7 @@ class VideoCompressPlugin : MethodCallHandler, FlutterPlugin, ActivityAware {
         fun registerWith(registrar: Registrar) {
             val instance = VideoCompressPlugin()
             instance.init(registrar.context(), registrar.messenger())
+            registrar.addRequestPermissionsResultListener(plugin::onRequestPermissionsResult)
         }
     }
 
