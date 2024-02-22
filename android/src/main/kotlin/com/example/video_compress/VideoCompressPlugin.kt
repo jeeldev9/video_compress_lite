@@ -144,6 +144,7 @@ class VideoCompressPlugin : MethodCallHandler, FlutterPlugin, ActivityAware {
                 val quality = call.argument<Int>("quality")!!
                 val deleteOrigin = call.argument<Boolean>("deleteOrigin")!!
                 val metaRetriever = android.media.MediaMetadataRetriever()
+                val includeAudio = call.argument<Boolean>("includeAudio") ?: true
                 metaRetriever.setDataSource(context!!, Uri.fromFile(file))
                 val height =
                     metaRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)
@@ -161,14 +162,15 @@ class VideoCompressPlugin : MethodCallHandler, FlutterPlugin, ActivityAware {
                 val file_size = (file.length() / 1024).toString().toInt()
                 Log.e("LL", "SIZE::" + file_size + "  PATH::" + file.absolutePath)
                 Log.e("LL", "Quality $quality");
+                Log.e("LL", "includeAudio $includeAudio");
 
 
                 val videoQuality = Utility("video_compress").getQuality(quality)
 
                 val configuration = Configuration(
 
-                    quality = videoQuality, false,
-                    null, false, false, height!!.toDouble(), width!!.toDouble(),
+                    quality = videoQuality, isMinBitrateCheckEnabled=false,
+                    videoBitrateInMbps = null, disableAudio = !includeAudio,keepOriginalResolution = false,videoHeight = height!!.toDouble(), videoWidth =width!!.toDouble(),
                     videoName
                     )
 
@@ -259,7 +261,7 @@ class VideoCompressPlugin : MethodCallHandler, FlutterPlugin, ActivityAware {
                             result.success(json.toString())
 
                             if (deleteOrigin) {
-                                File(file.path!!).delete()
+                                File(sourceFile.path!!).delete()
                             }
                         }
 
