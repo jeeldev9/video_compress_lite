@@ -2,7 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
-
+import 'package:permission_handler/permission_handler.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:video_compress/src/progress_callback/compress_mixin.dart';
@@ -137,6 +138,7 @@ extension Compress on IVideoCompress {
     int? outputWidth,
     int? outputHeight,
   }) async {
+    bool? result=await requestStoragePermission();
     if (isCompressing) {
       throw StateError('''VideoCompress Error: 
       Method: compressVideo
@@ -190,5 +192,48 @@ extension Compress on IVideoCompress {
     return await _invoke<void>('setLogLevel', {
       'logLevel': logLevel,
     });
+  }
+
+   Future<bool?> requestStoragePermission() async {
+    if (Platform.isAndroid) {
+      DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+      AndroidDeviceInfo androidDeviceInfo = await deviceInfo.androidInfo;
+      debugPrint(androidDeviceInfo.version.sdkInt.toString());
+
+      if (androidDeviceInfo.version.sdkInt >= 33) {
+        //Check photos permission from android version 13
+        Map<Permission, PermissionStatus> statuses =
+        await [Permission.photos].request();
+        if (statuses[Permission.photos]!.isGranted) {
+          return true;
+        } else if (statuses[Permission.photos]!.isPermanentlyDenied) {
+          return false;
+        } else {
+          return false;
+        }
+      } else {
+        //Check storage permission below android version 13
+        Map<Permission, PermissionStatus> statuses =
+        await [Permission.storage].request();
+        if (statuses[Permission.storage]!.isGranted) {
+          return true;
+        } else if (statuses[Permission.storage]!.isPermanentlyDenied) {
+          return false;
+        } else {
+          return false;
+        }
+      }
+    } else {
+      //Check photos permission from ios
+      Map<Permission, PermissionStatus> statuses =
+      await [Permission.photos].request();
+      if (statuses[Permission.photos]!.isGranted) {
+        return true;
+      } else if (statuses[Permission.photos]!.isPermanentlyDenied) {
+        return false;
+      } else {
+        return false;
+      }
+    }
   }
 }
